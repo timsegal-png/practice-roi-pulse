@@ -1,63 +1,132 @@
-// Mock NHS Practice data mapped by ODS Code
-// In production, this would integrate with the NHS ODS API
 export interface PracticeData {
   odsCode: string;
   name: string;
   listSize: number;
-  address?: string;
 }
 
-// Sample NHS GP practices with realistic data
-const practiceDatabase: Record<string, PracticeData> = {
-  // London
-  "E87001": { odsCode: "E87001", name: "The Lister Medical Centre", listSize: 8500, address: "London" },
-  "E87002": { odsCode: "E87002", name: "St. Thomas' Family Practice", listSize: 12400, address: "London" },
-  "E87003": { odsCode: "E87003", name: "Bloomsbury Surgery", listSize: 4200, address: "London" },
-  "E87004": { odsCode: "E87004", name: "King's Cross Medical Centre", listSize: 15800, address: "London" },
-  "E87005": { odsCode: "E87005", name: "Chelsea & Westminster Practice", listSize: 7200, address: "London" },
-  
-  // Manchester
-  "Y03001": { odsCode: "Y03001", name: "Manchester Health Centre", listSize: 9800, address: "Manchester" },
-  "Y03002": { odsCode: "Y03002", name: "Piccadilly Medical Practice", listSize: 6100, address: "Manchester" },
-  "Y03003": { odsCode: "Y03003", name: "Northern Quarter Surgery", listSize: 3800, address: "Manchester" },
-  
-  // Birmingham
-  "M85001": { odsCode: "M85001", name: "Birmingham Central Practice", listSize: 11200, address: "Birmingham" },
-  "M85002": { odsCode: "M85002", name: "Edgbaston Medical Centre", listSize: 5500, address: "Birmingham" },
-  
-  // Leeds
-  "B82001": { odsCode: "B82001", name: "Leeds City Medical Centre", listSize: 8900, address: "Leeds" },
-  "B82002": { odsCode: "B82002", name: "Headingley Family Practice", listSize: 4800, address: "Leeds" },
-  
-  // Bristol
-  "L81001": { odsCode: "L81001", name: "Bristol Harbourside Surgery", listSize: 7600, address: "Bristol" },
-  "L81002": { odsCode: "L81002", name: "Clifton Medical Practice", listSize: 13500, address: "Bristol" },
-  
-  // Liverpool
-  "N85001": { odsCode: "N85001", name: "Liverpool Central Practice", listSize: 10100, address: "Liverpool" },
-  
-  // Sheffield
-  "C84001": { odsCode: "C84001", name: "Sheffield Health Centre", listSize: 6700, address: "Sheffield" },
-  
-  // Newcastle
-  "A84001": { odsCode: "A84001", name: "Newcastle City Practice", listSize: 8200, address: "Newcastle" },
-  
-  // Large practices
-  "F84001": { odsCode: "F84001", name: "Greater London Medical Group", listSize: 95000, address: "London" },
-  "F84002": { odsCode: "F84002", name: "Midlands Health Network", listSize: 45000, address: "Birmingham" },
-};
+// Cache for parsed practice data
+let practicesCache: Map<string, PracticeData> | null = null;
+let loadingPromise: Promise<void> | null = null;
 
-export function lookupPractice(odsCode: string): PracticeData | null {
-  const normalizedCode = odsCode.toUpperCase().trim();
-  return practiceDatabase[normalizedCode] || null;
+/**
+ * Load and parse the practices CSV file
+ */
+async function loadPractices(): Promise<Map<string, PracticeData>> {
+  if (practicesCache) {
+    return practicesCache;
+  }
+
+  if (loadingPromise) {
+    await loadingPromise;
+    return practicesCache!;
+  }
+
+  loadingPromise = (async () => {
+    try {
+      const response = await fetch('/data/practices.csv');
+      const csvText = await response.text();
+      
+      practicesCache = new Map();
+      const lines = csvText.split('\n');
+      
+      // Skip header row, parse each line
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Parse CSV line (handle commas in quoted fields)
+        const fields = parseCSVLine(line);
+        if (fields.length >= 5) {
+          const practiceName = fields[0];
+          const odsCode = fields[1].toUpperCase();
+          const listSize = parseInt(fields[4], 10);
+          
+          if (odsCode && !isNaN(listSize)) {
+            practicesCache.set(odsCode, {
+              odsCode,
+              name: practiceName,
+              listSize,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load practices data:', error);
+      practicesCache = new Map();
+    }
+  })();
+
+  await loadingPromise;
+  return practicesCache!;
 }
 
+/**
+ * Parse a CSV line handling quoted fields
+ */
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  result.push(current.trim());
+  return result;
+}
+
+/**
+ * Lookup a practice by ODS code
+ */
+export async function lookupPractice(odsCode: string): Promise<PracticeData | null> {
+  const practices = await loadPractices();
+  return practices.get(odsCode.toUpperCase()) || null;
+}
+
+/**
+ * Validate ODS code format
+ */
 export function validateOdsCode(code: string): boolean {
-  // ODS codes are typically 5-6 alphanumeric characters
-  const pattern = /^[A-Z0-9]{5,6}$/i;
+  // ODS codes are typically 5-7 alphanumeric characters
+  const pattern = /^[A-Za-z0-9]{5,7}$/;
   return pattern.test(code.trim());
 }
 
-export function getAllPractices(): PracticeData[] {
-  return Object.values(practiceDatabase);
+/**
+ * Search for practices by partial ODS code or name
+ */
+export async function searchPractices(query: string, limit = 10): Promise<PracticeData[]> {
+  const practices = await loadPractices();
+  const upperQuery = query.toUpperCase();
+  const results: PracticeData[] = [];
+  
+  for (const [, practice] of practices) {
+    if (
+      practice.odsCode.includes(upperQuery) ||
+      practice.name.toUpperCase().includes(upperQuery)
+    ) {
+      results.push(practice);
+      if (results.length >= limit) break;
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Get the total number of practices loaded
+ */
+export async function getPracticeCount(): Promise<number> {
+  const practices = await loadPractices();
+  return practices.size;
 }

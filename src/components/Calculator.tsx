@@ -1,11 +1,8 @@
 import { useState } from 'react';
-import { Clock, Edit3, Timer, PoundSterling, TrendingUp } from 'lucide-react';
 import { ODSInput } from './ODSInput';
-import { PracticeInfo } from './PracticeInfo';
-import { MetricCard } from './MetricCard';
-import { ROISummary } from './ROISummary';
+import { ROIOutput } from './ROIOutput';
 import { ROITable } from './ROITable';
-import { calculateROI, formatTime, formatHours, formatCurrency, formatPercentage } from '@/lib/roiCalculations';
+import { calculateROI } from '@/lib/roiCalculations';
 import type { PracticeData } from '@/lib/odsData';
 import type { ROICalculation } from '@/lib/roiCalculations';
 
@@ -42,56 +39,10 @@ export function Calculator() {
       {/* Results Section */}
       {practice && calculation && (
         <div className="space-y-8 animate-fade-in">
-          {/* Practice Info */}
-          <PracticeInfo 
-            name={practice.name} 
-            odsCode={practice.odsCode} 
-            listSize={practice.listSize} 
-          />
+          {/* ROI Output - Main summary */}
+          <ROIOutput calculation={calculation} />
 
-          {/* Key Metrics Grid */}
-          <section>
-            <h3 className="text-lg font-semibold text-foreground mb-4">Key Metrics</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <MetricCard
-                label="Avg Edit Time"
-                value={formatTime(calculation.avgEditTime)}
-                icon={<Edit3 className="w-4 h-4 text-primary" />}
-                subValue="Per scribe"
-              />
-              <MetricCard
-                label="Time Saved"
-                value={formatTime(calculation.timeSavedPerScribe)}
-                icon={<Clock className="w-4 h-4 text-primary" />}
-                subValue="Per appointment"
-              />
-              <MetricCard
-                label="Monthly Hours"
-                value={formatHours(calculation.monthlyHoursSaved)}
-                icon={<Timer className="w-4 h-4 text-primary" />}
-                subValue="Recovered time"
-              />
-              <MetricCard
-                label="Monthly Savings"
-                value={formatCurrency(calculation.netMonthlySavings)}
-                icon={<PoundSterling className="w-4 h-4 text-success" />}
-                highlight
-                subValue="Net of license"
-              />
-              <MetricCard
-                label="ROI"
-                value={formatPercentage(calculation.roi)}
-                icon={<TrendingUp className="w-4 h-4 text-success" />}
-                highlight
-                subValue="Return on investment"
-              />
-            </div>
-          </section>
-
-          {/* ROI Summary Card */}
-          <ROISummary calculation={calculation} />
-
-          {/* Detailed Table */}
+          {/* Detailed Breakdown Table */}
           <ROITable calculation={calculation} />
         </div>
       )}

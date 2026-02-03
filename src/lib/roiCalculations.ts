@@ -56,8 +56,8 @@ export function calculateROI(practiceName: string, listSize: number): ROICalcula
   const monthlyLicenseCost = monthlyScribes * licenseCostPerScribe;
   const netMonthlySavings = grossMonthlySavings - monthlyLicenseCost;
   
-  // ROI calculation
-  const roi = monthlyLicenseCost > 0 ? (netMonthlySavings / monthlyLicenseCost) * 100 : 0;
+  // ROI calculation (as multiplier, e.g. 14x)
+  const roi = monthlyLicenseCost > 0 ? netMonthlySavings / monthlyLicenseCost : 0;
   
   // Annual projection
   const annualSavings = netMonthlySavings * 12;
@@ -102,10 +102,10 @@ export function formatCurrency(amount: number, decimals = 0): string {
 }
 
 /**
- * Format percentage
+ * Format ROI as multiplier (e.g., 14x)
  */
 export function formatPercentage(value: number): string {
-  return `${value.toFixed(0)}%`;
+  return `${value.toFixed(0)}x`;
 }
 
 /**

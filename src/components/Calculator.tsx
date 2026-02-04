@@ -1,24 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ODSInput } from './ODSInput';
 import { ROIOutput } from './ROIOutput';
 import { ROITable } from './ROITable';
-import { calculateROI } from '@/lib/roiCalculations';
+import { calculateROI, estimateMonthlyScribes, DEFAULT_CLINICIAN_HOURLY_COST } from '@/lib/roiCalculations';
 import type { PracticeData } from '@/lib/odsData';
 import type { ROICalculation } from '@/lib/roiCalculations';
 
 export function Calculator() {
   const [practice, setPractice] = useState<PracticeData | null>(null);
   const [calculation, setCalculation] = useState<ROICalculation | null>(null);
+  
+  // Editable overrides
+  const [useActualScribes, setUseActualScribes] = useState(false);
+  const [actualScribes, setActualScribes] = useState<number>(1200);
+  const [clinicianHourlyCost, setClinicianHourlyCost] = useState<number>(DEFAULT_CLINICIAN_HOURLY_COST);
+
+  const recalculate = (
+    foundPractice: PracticeData,
+    isActual: boolean,
+    scribes: number,
+    hourlyCost: number
+  ) => {
+    const roi = calculateROI(foundPractice.name, foundPractice.listSize, {
+      monthlyScribes: isActual ? scribes : undefined,
+      clinicianHourlyCost: hourlyCost,
+    });
+    setCalculation(roi);
+  };
 
   const handlePracticeFound = (foundPractice: PracticeData) => {
     setPractice(foundPractice);
-    const roi = calculateROI(foundPractice.name, foundPractice.listSize);
-    setCalculation(roi);
+    const estimatedScribes = estimateMonthlyScribes(foundPractice.listSize);
+    setActualScribes(estimatedScribes);
+    setUseActualScribes(false);
+    setClinicianHourlyCost(DEFAULT_CLINICIAN_HOURLY_COST);
+    recalculate(foundPractice, false, estimatedScribes, DEFAULT_CLINICIAN_HOURLY_COST);
   };
 
   const handleReset = () => {
     setPractice(null);
     setCalculation(null);
+    setUseActualScribes(false);
+    setActualScribes(1200);
+    setClinicianHourlyCost(DEFAULT_CLINICIAN_HOURLY_COST);
+  };
+
+  const handleScribesToggle = (isActual: boolean) => {
+    setUseActualScribes(isActual);
+    if (practice) {
+      recalculate(practice, isActual, actualScribes, clinicianHourlyCost);
+    }
+  };
+
+  const handleScribesChange = (value: number) => {
+    setActualScribes(value);
+    if (practice && useActualScribes) {
+      recalculate(practice, true, value, clinicianHourlyCost);
+    }
+  };
+
+  const handleClinicianCostChange = (value: number) => {
+    setClinicianHourlyCost(value);
+    if (practice) {
+      recalculate(practice, useActualScribes, actualScribes, value);
+    }
   };
 
   return (
@@ -40,7 +85,15 @@ export function Calculator() {
       {practice && calculation && (
         <div className="space-y-8 animate-fade-in">
           {/* ROI Output - Main summary */}
-          <ROIOutput calculation={calculation} />
+          <ROIOutput 
+            calculation={calculation}
+            useActualScribes={useActualScribes}
+            actualScribes={actualScribes}
+            clinicianHourlyCost={clinicianHourlyCost}
+            onScribesToggle={handleScribesToggle}
+            onScribesChange={handleScribesChange}
+            onClinicianCostChange={handleClinicianCostChange}
+          />
 
           {/* Detailed Breakdown Table */}
           <ROITable calculation={calculation} />

@@ -18,7 +18,7 @@ export interface ROICalculation {
 // Constants
 const BASELINE_NOTE_TIME_SECONDS = 420; // 7 minutes
 const AVG_EDIT_TIME_SECONDS = 68;
-const CLINICIAN_HOURLY_COST = 80; // £80/hour
+const DEFAULT_CLINICIAN_HOURLY_COST = 80; // £80/hour
 
 /**
  * Estimate monthly scribes based on patient list size
@@ -31,19 +31,43 @@ export function estimateMonthlyScribes(listSize: number): number {
 }
 
 /**
- * Get license cost per scribe based on patient list size bands
+ * Get price per patient per year based on patient list size bands
+ * Bands:
+ * - 0–14,999 → £0.50
+ * - 15,000–89,999 → £0.47
+ * - 90,000–799,999 → £0.43
+ * - 800,000+ → £0.40
  */
-export function getLicenseCostPerScribe(listSize: number): number {
+export function getPricePerPatient(listSize: number): number {
   if (listSize < 15000) return 0.50;
   if (listSize < 90000) return 0.47;
-  return 0.43;
+  if (listSize < 800000) return 0.43;
+  return 0.40;
+}
+
+/**
+ * Calculate monthly license fee = (patient_list_size × price_per_patient) / 12
+ */
+export function calculateMonthlyLicenseFee(listSize: number): number {
+  const pricePerPatient = getPricePerPatient(listSize);
+  return (listSize * pricePerPatient) / 12;
+}
+
+export interface ROIInputOverrides {
+  monthlyScribes?: number;
+  clinicianHourlyCost?: number;
 }
 
 /**
  * Calculate full ROI metrics for a practice
  */
-export function calculateROI(practiceName: string, listSize: number): ROICalculation {
-  const monthlyScribes = estimateMonthlyScribes(listSize);
+export function calculateROI(
+  practiceName: string, 
+  listSize: number,
+  overrides?: ROIInputOverrides
+): ROICalculation {
+  const monthlyScribes = overrides?.monthlyScribes ?? estimateMonthlyScribes(listSize);
+  const clinicianHourlyCost = overrides?.clinicianHourlyCost ?? DEFAULT_CLINICIAN_HOURLY_COST;
   const timeSavedPerScribe = BASELINE_NOTE_TIME_SECONDS - AVG_EDIT_TIME_SECONDS;
   
   // Monthly time saved in hours
@@ -51,9 +75,9 @@ export function calculateROI(practiceName: string, listSize: number): ROICalcula
   const monthlyHoursSaved = monthlySecondsSaved / 3600;
   
   // Financial calculations
-  const grossMonthlySavings = monthlyHoursSaved * CLINICIAN_HOURLY_COST;
-  const licenseCostPerScribe = getLicenseCostPerScribe(listSize);
-  const monthlyLicenseCost = monthlyScribes * licenseCostPerScribe;
+  const grossMonthlySavings = monthlyHoursSaved * clinicianHourlyCost;
+  const pricePerPatient = getPricePerPatient(listSize);
+  const monthlyLicenseCost = calculateMonthlyLicenseFee(listSize);
   const netMonthlySavings = grossMonthlySavings - monthlyLicenseCost;
   
   // ROI calculation (as multiplier, e.g. 14x)
@@ -70,15 +94,17 @@ export function calculateROI(practiceName: string, listSize: number): ROICalcula
     avgEditTime: AVG_EDIT_TIME_SECONDS,
     timeSavedPerScribe,
     monthlyHoursSaved,
-    clinicianHourlyCost: CLINICIAN_HOURLY_COST,
+    clinicianHourlyCost,
     grossMonthlySavings,
-    licenseCostPerScribe,
+    licenseCostPerScribe: pricePerPatient,
     monthlyLicenseCost,
     netMonthlySavings,
     roi,
     annualSavings,
   };
 }
+
+export { DEFAULT_CLINICIAN_HOURLY_COST };
 
 /**
  * Format seconds to minutes and seconds string

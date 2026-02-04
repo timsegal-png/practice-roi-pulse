@@ -1,12 +1,30 @@
 import { Users, PoundSterling, Mic } from 'lucide-react';
 import { ROICalculation, formatCurrency } from '@/lib/roiCalculations';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
 interface ROIOutputProps {
   calculation: ROICalculation;
+  useActualScribes: boolean;
+  actualScribes: number;
+  clinicianHourlyCost: number;
+  onScribesToggle: (isActual: boolean) => void;
+  onScribesChange: (value: number) => void;
+  onClinicianCostChange: (value: number) => void;
 }
+
 export function ROIOutput({
-  calculation
+  calculation,
+  useActualScribes,
+  actualScribes,
+  clinicianHourlyCost,
+  onScribesToggle,
+  onScribesChange,
+  onClinicianCostChange,
 }: ROIOutputProps) {
-  return <div className="bg-card rounded-2xl border border-border p-8 shadow-card animate-fade-in">
+  return (
+    <div className="bg-card rounded-2xl border border-border p-8 shadow-card animate-fade-in">
       {/* Practice Name Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-foreground">
@@ -38,8 +56,53 @@ export function ROIOutput({
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Mic className="w-5 h-5 text-primary" />
           </div>
-          <span className="text-foreground">Average Monthly Scribes*: 1,200<span className="font-semibold">{calculation.monthlyScribes.toLocaleString()}</span>
-          </span>
+          <div className="flex items-center gap-4 flex-wrap">
+            <span className="text-foreground">
+              {useActualScribes ? 'Actual' : 'Estimated'} Monthly Scribes:
+            </span>
+            {useActualScribes ? (
+              <Input
+                type="number"
+                value={actualScribes}
+                onChange={(e) => onScribesChange(Number(e.target.value) || 0)}
+                className="w-28 h-8"
+                min={0}
+              />
+            ) : (
+              <span className="font-semibold">{calculation.monthlyScribes.toLocaleString()}</span>
+            )}
+            <div className="flex items-center gap-2">
+              <Label htmlFor="scribes-toggle" className="text-sm text-muted-foreground">
+                Estimated
+              </Label>
+              <Switch
+                id="scribes-toggle"
+                checked={useActualScribes}
+                onCheckedChange={onScribesToggle}
+              />
+              <Label htmlFor="scribes-toggle" className="text-sm text-muted-foreground">
+                Actual
+              </Label>
+            </div>
+          </div>
+        </div>
+
+        {/* Editable Clinician Hourly Cost */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <PoundSterling className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-foreground">Clinician hourly cost: £</span>
+            <Input
+              type="number"
+              value={clinicianHourlyCost}
+              onChange={(e) => onClinicianCostChange(Number(e.target.value) || 0)}
+              className="w-24 h-8"
+              min={0}
+            />
+            <span className="text-muted-foreground text-sm">/hour</span>
+          </div>
         </div>
       </div>
 
@@ -85,9 +148,10 @@ export function ROIOutput({
 
       {/* Footnotes */}
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p>*Average number of scribes for a practice with this list size
-**Assumes 420 second - or 7 minute - time spent to write notes after an appointment</p>
-        <p>***Clinician time saved in hours multiplied by an estimated £80 per hour cost for a clinician, minus the monthly cost of Scribe</p>
+        <p>*Average number of scribes for a practice with this list size</p>
+        <p>**Assumes 420 second - or 7 minute - time spent to write notes after an appointment</p>
+        <p>***Clinician time saved in hours multiplied by £{clinicianHourlyCost} per hour cost for a clinician, minus the monthly cost of Scribe</p>
       </div>
-    </div>;
+    </div>
+  );
 }

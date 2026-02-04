@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ODSInput } from './ODSInput';
 import { ROIOutput } from './ROIOutput';
 import { ROITable } from './ROITable';
@@ -69,12 +69,12 @@ export function Calculator() {
   return (
     <div className="space-y-8">
       {/* Input Section */}
-      <section className="bg-card rounded-2xl border border-border p-8 shadow-card">
+      <section className="bg-card rounded-xl border border-border p-8 shadow-sm">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
+          <h2 className="text-xl font-semibold text-primary mb-2">
             Enter your practice details
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Input your ODS code to calculate potential savings with Scribe
           </p>
         </div>

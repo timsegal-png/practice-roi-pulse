@@ -10,7 +10,7 @@ export function ROIOutput({ calculation }: ROIOutputProps) {
     <div className="bg-card rounded-2xl border border-border p-8 shadow-card animate-fade-in">
       {/* Practice Name Header */}
       <div className="mb-6">
-        <h2 className="inline-block text-2xl font-bold text-foreground border-2 border-primary px-3 py-1 rounded">
+        <h2 className="text-2xl font-bold text-foreground">
           {calculation.practiceName}
         </h2>
       </div>

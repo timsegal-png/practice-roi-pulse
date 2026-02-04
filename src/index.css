@@ -6,38 +6,43 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    /* Accurx Brand Colors */
+    --background: 0 0% 100%;
+    --foreground: 210 29% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 210 29% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 210 29% 20%;
 
-    --primary: 209 100% 36%;
+    /* Accurx Primary Blue */
+    --primary: 190 76% 26%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 180 40% 45%;
-    --secondary-foreground: 0 0% 100%;
+    /* Accurx Mint/Teal accent */
+    --secondary: 169 53% 55%;
+    --secondary-foreground: 210 29% 20%;
 
-    --muted: 210 15% 93%;
-    --muted-foreground: 215 15% 45%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 210 15% 45%;
 
-    --accent: 180 45% 40%;
-    --accent-foreground: 0 0% 100%;
+    /* Accurx Mint for highlights */
+    --accent: 169 53% 55%;
+    --accent-foreground: 210 29% 20%;
 
+    /* Success green */
     --success: 152 60% 40%;
     --success-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 209 100% 36%;
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
+    --ring: 190 76% 26%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -47,33 +52,28 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(209 100% 36%), hsl(180 45% 40%));
-    --gradient-success: linear-gradient(135deg, hsl(152 60% 40%), hsl(160 55% 45%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 98%));
   }
 
   .dark {
-    --background: 215 25% 10%;
-    --foreground: 210 20% 98%;
+    --background: 210 25% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 215 25% 12%;
-    --card-foreground: 210 20% 98%;
+    --card: 210 25% 10%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 215 25% 12%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 210 25% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 209 85% 50%;
+    --primary: 190 70% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 180 40% 50%;
+    --secondary: 169 50% 50%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 20% 18%;
-    --muted-foreground: 215 15% 65%;
+    --muted: 210 20% 15%;
+    --muted-foreground: 210 15% 65%;
 
-    --accent: 180 45% 45%;
+    --accent: 169 50% 50%;
     --accent-foreground: 0 0% 100%;
 
     --success: 152 55% 45%;
@@ -82,9 +82,9 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 20% 22%;
-    --input: 215 20% 22%;
-    --ring: 209 85% 50%;
+    --border: 210 20% 18%;
+    --input: 210 20% 18%;
+    --ring: 190 70% 45%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -115,7 +115,6 @@
 @layer components {
   .metric-card {
     @apply bg-card rounded-xl border border-border p-6 shadow-sm transition-all duration-300;
-    background: var(--gradient-card);
   }
 
   .metric-card:hover {
@@ -139,14 +138,15 @@
   }
 
   .success-highlight {
-    @apply text-success;
+    @apply text-accent;
   }
 
   .gradient-text {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    @apply text-primary;
+  }
+
+  .accurx-card {
+    @apply bg-card rounded-xl border border-border p-6 shadow-sm;
   }
 }
 

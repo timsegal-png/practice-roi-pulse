@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { ODSInput } from './ODSInput';
 import { ROIOutput } from './ROIOutput';
 import { ROITable } from './ROITable';
-import { calculateROI, estimateMonthlyScribes, DEFAULT_CLINICIAN_HOURLY_COST } from '@/lib/roiCalculations';
+import { 
+  calculateROI, 
+  estimateMonthlyScribes, 
+  DEFAULT_CLINICIAN_HOURLY_COST,
+  BASELINE_NOTE_TIME_SECONDS,
+  AVG_EDIT_TIME_SECONDS,
+} from '@/lib/roiCalculations';
 import type { PracticeData } from '@/lib/odsData';
 import type { ROICalculation } from '@/lib/roiCalculations';
 
@@ -11,19 +17,28 @@ export function Calculator() {
   const [calculation, setCalculation] = useState<ROICalculation | null>(null);
   
   // Editable overrides
-  const [useActualScribes, setUseActualScribes] = useState(false);
-  const [actualScribes, setActualScribes] = useState<number>(1200);
+  const [useActualValues, setUseActualValues] = useState(false);
+  const [baselineNoteTime, setBaselineNoteTime] = useState<number>(BASELINE_NOTE_TIME_SECONDS);
+  const [timeSavedPerScribe, setTimeSavedPerScribe] = useState<number>(BASELINE_NOTE_TIME_SECONDS - AVG_EDIT_TIME_SECONDS);
+  const [monthlyScribes, setMonthlyScribes] = useState<number>(500);
   const [clinicianHourlyCost, setClinicianHourlyCost] = useState<number>(DEFAULT_CLINICIAN_HOURLY_COST);
 
   const recalculate = (
     foundPractice: PracticeData,
     isActual: boolean,
+    baseline: number,
+    timeSaved: number,
     scribes: number,
     hourlyCost: number
   ) => {
+    // When using actual values, derive avgEditTime from baseline - timeSaved
+    const avgEditTime = baseline - timeSaved;
+    
     const roi = calculateROI(foundPractice.name, foundPractice.listSize, {
       monthlyScribes: isActual ? scribes : undefined,
       clinicianHourlyCost: hourlyCost,
+      baselineNoteTime: isActual ? baseline : undefined,
+      avgEditTime: isActual ? avgEditTime : undefined,
     });
     setCalculation(roi);
   };
@@ -31,38 +46,63 @@ export function Calculator() {
   const handlePracticeFound = (foundPractice: PracticeData) => {
     setPractice(foundPractice);
     const estimatedScribes = estimateMonthlyScribes(foundPractice.listSize);
-    setActualScribes(estimatedScribes);
-    setUseActualScribes(false);
+    setMonthlyScribes(estimatedScribes);
+    setUseActualValues(false);
+    setBaselineNoteTime(BASELINE_NOTE_TIME_SECONDS);
+    setTimeSavedPerScribe(BASELINE_NOTE_TIME_SECONDS - AVG_EDIT_TIME_SECONDS);
     setClinicianHourlyCost(DEFAULT_CLINICIAN_HOURLY_COST);
-    recalculate(foundPractice, false, estimatedScribes, DEFAULT_CLINICIAN_HOURLY_COST);
+    recalculate(foundPractice, false, BASELINE_NOTE_TIME_SECONDS, BASELINE_NOTE_TIME_SECONDS - AVG_EDIT_TIME_SECONDS, estimatedScribes, DEFAULT_CLINICIAN_HOURLY_COST);
   };
 
   const handleReset = () => {
     setPractice(null);
     setCalculation(null);
-    setUseActualScribes(false);
-    setActualScribes(1200);
+    setUseActualValues(false);
+    setBaselineNoteTime(BASELINE_NOTE_TIME_SECONDS);
+    setTimeSavedPerScribe(BASELINE_NOTE_TIME_SECONDS - AVG_EDIT_TIME_SECONDS);
+    setMonthlyScribes(500);
     setClinicianHourlyCost(DEFAULT_CLINICIAN_HOURLY_COST);
   };
 
-  const handleScribesToggle = (isActual: boolean) => {
-    setUseActualScribes(isActual);
+  const handleToggleActual = (isActual: boolean) => {
+    setUseActualValues(isActual);
     if (practice) {
-      recalculate(practice, isActual, actualScribes, clinicianHourlyCost);
+      if (!isActual) {
+        // Reset to estimated values
+        const estimatedScribes = estimateMonthlyScribes(practice.listSize);
+        setMonthlyScribes(estimatedScribes);
+        setBaselineNoteTime(BASELINE_NOTE_TIME_SECONDS);
+        setTimeSavedPerScribe(BASELINE_NOTE_TIME_SECONDS - AVG_EDIT_TIME_SECONDS);
+      }
+      recalculate(practice, isActual, baselineNoteTime, timeSavedPerScribe, monthlyScribes, clinicianHourlyCost);
+    }
+  };
+
+  const handleBaselineChange = (value: number) => {
+    setBaselineNoteTime(value);
+    if (practice && useActualValues) {
+      recalculate(practice, true, value, timeSavedPerScribe, monthlyScribes, clinicianHourlyCost);
+    }
+  };
+
+  const handleTimeSavedChange = (value: number) => {
+    setTimeSavedPerScribe(value);
+    if (practice && useActualValues) {
+      recalculate(practice, true, baselineNoteTime, value, monthlyScribes, clinicianHourlyCost);
     }
   };
 
   const handleScribesChange = (value: number) => {
-    setActualScribes(value);
-    if (practice && useActualScribes) {
-      recalculate(practice, true, value, clinicianHourlyCost);
+    setMonthlyScribes(value);
+    if (practice && useActualValues) {
+      recalculate(practice, true, baselineNoteTime, timeSavedPerScribe, value, clinicianHourlyCost);
     }
   };
 
   const handleClinicianCostChange = (value: number) => {
     setClinicianHourlyCost(value);
-    if (practice) {
-      recalculate(practice, useActualScribes, actualScribes, value);
+    if (practice && useActualValues) {
+      recalculate(practice, true, baselineNoteTime, timeSavedPerScribe, monthlyScribes, value);
     }
   };
 
@@ -85,18 +125,22 @@ export function Calculator() {
       {practice && calculation && (
         <div className="space-y-8 animate-fade-in">
           {/* ROI Output - Main summary */}
-          <ROIOutput 
+          <ROIOutput calculation={calculation} />
+
+          {/* Detailed Breakdown Table */}
+          <ROITable 
             calculation={calculation}
-            useActualScribes={useActualScribes}
-            actualScribes={actualScribes}
+            useActualValues={useActualValues}
+            baselineNoteTime={baselineNoteTime}
+            timeSavedPerScribe={timeSavedPerScribe}
+            monthlyScribes={monthlyScribes}
             clinicianHourlyCost={clinicianHourlyCost}
-            onScribesToggle={handleScribesToggle}
+            onToggleActual={handleToggleActual}
+            onBaselineChange={handleBaselineChange}
+            onTimeSavedChange={handleTimeSavedChange}
             onScribesChange={handleScribesChange}
             onClinicianCostChange={handleClinicianCostChange}
           />
-
-          {/* Detailed Breakdown Table */}
-          <ROITable calculation={calculation} />
         </div>
       )}
     </div>

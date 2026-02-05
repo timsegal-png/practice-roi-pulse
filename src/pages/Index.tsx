@@ -36,7 +36,7 @@ const Index = () => {
             Calculate your practice's savings
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            See how much time and money your practice could save with Scribe's AI-powered clinical documentation.
+            See how much time and money your practice could save using Accurx Scribe.
           </p>
         </section>
 

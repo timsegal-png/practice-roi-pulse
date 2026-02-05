@@ -1,5 +1,6 @@
 import { Users, PoundSterling } from 'lucide-react';
 import { ROICalculation, formatCurrency } from '@/lib/roiCalculations';
+import { ExportPDF } from './ExportPDF';
 
 interface ROIOutputProps {
   calculation: ROICalculation;
@@ -9,10 +10,11 @@ export function ROIOutput({ calculation }: ROIOutputProps) {
   return (
     <div className="bg-card rounded-xl border border-border p-8 shadow-sm animate-fade-in">
       {/* Practice Name Header */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-bold text-primary">
           {calculation.practiceName}
         </h2>
+        <ExportPDF calculation={calculation} />
       </div>
 
       {/* Practice Info Cards */}

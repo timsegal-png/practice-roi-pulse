@@ -20,14 +20,58 @@ const BASELINE_NOTE_TIME_SECONDS = 420; // 7 minutes
 const AVG_EDIT_TIME_SECONDS = 68;
 const DEFAULT_CLINICIAN_HOURLY_COST = 80; // £80/hour
 
+// Scribe estimation dataset based on list size ranges
+const SCRIBE_ESTIMATES: { min: number; max: number; avg: number }[] = [
+  { min: 2000, max: 4000, avg: 259 },
+  { min: 4000, max: 6000, avg: 328 },
+  { min: 6000, max: 8000, avg: 344 },
+  { min: 8000, max: 10000, avg: 387 },
+  { min: 10000, max: 12000, avg: 397 },
+  { min: 12000, max: 14000, avg: 482 },
+  { min: 14000, max: 16000, avg: 556 },
+  { min: 16000, max: 18000, avg: 595 },
+  { min: 18000, max: 20000, avg: 483 },
+  { min: 20000, max: 22000, avg: 476 },
+  { min: 22000, max: 24000, avg: 1165 },
+  { min: 24000, max: 26000, avg: 531 },
+  { min: 26000, max: 28000, avg: 574 },
+  { min: 28000, max: 30000, avg: 534 },
+  { min: 30000, max: 32000, avg: 976 },
+  { min: 32000, max: 34000, avg: 601 },
+  { min: 34000, max: 36000, avg: 130 },
+  { min: 36000, max: 38000, avg: 233 },
+  { min: 38000, max: 40000, avg: 248 },
+  { min: 40000, max: 42000, avg: 480 },
+  { min: 46000, max: 48000, avg: 695 },
+  { min: 48000, max: 50000, avg: 2681 },
+  { min: 52000, max: 54000, avg: 713 },
+  { min: 54000, max: 56000, avg: 728 },
+];
+
 /**
- * Estimate monthly scribes based on patient list size
+ * Estimate monthly scribes based on patient list size using dataset
  */
 export function estimateMonthlyScribes(listSize: number): number {
-  if (listSize < 5000) return 400;
-  if (listSize < 8000) return 650;
-  if (listSize < 12000) return 900;
-  return 1200;
+  // Find matching range
+  const match = SCRIBE_ESTIMATES.find(
+    (band) => listSize >= band.min && listSize < band.max
+  );
+  
+  if (match) return match.avg;
+  
+  // Fallback for sizes outside dataset
+  if (listSize < 2000) return 200;
+  if (listSize >= 56000) return 750;
+  
+  // Interpolate for gaps (e.g., 42000-46000, 50000-52000)
+  const sortedBands = [...SCRIBE_ESTIMATES].sort((a, b) => a.min - b.min);
+  for (let i = 0; i < sortedBands.length - 1; i++) {
+    if (listSize >= sortedBands[i].max && listSize < sortedBands[i + 1].min) {
+      return Math.round((sortedBands[i].avg + sortedBands[i + 1].avg) / 2);
+    }
+  }
+  
+  return 500; // Default fallback
 }
 
 /**
@@ -56,7 +100,11 @@ export function calculateMonthlyLicenseFee(listSize: number): number {
 export interface ROIInputOverrides {
   monthlyScribes?: number;
   clinicianHourlyCost?: number;
+  baselineNoteTime?: number;
+  avgEditTime?: number;
 }
+
+export { BASELINE_NOTE_TIME_SECONDS, AVG_EDIT_TIME_SECONDS };
 
 /**
  * Calculate full ROI metrics for a practice
@@ -68,7 +116,9 @@ export function calculateROI(
 ): ROICalculation {
   const monthlyScribes = overrides?.monthlyScribes ?? estimateMonthlyScribes(listSize);
   const clinicianHourlyCost = overrides?.clinicianHourlyCost ?? DEFAULT_CLINICIAN_HOURLY_COST;
-  const timeSavedPerScribe = BASELINE_NOTE_TIME_SECONDS - AVG_EDIT_TIME_SECONDS;
+  const baselineNoteTime = overrides?.baselineNoteTime ?? BASELINE_NOTE_TIME_SECONDS;
+  const avgEditTime = overrides?.avgEditTime ?? AVG_EDIT_TIME_SECONDS;
+  const timeSavedPerScribe = baselineNoteTime - avgEditTime;
   
   // Monthly time saved in hours
   const monthlySecondsSaved = monthlyScribes * timeSavedPerScribe;
@@ -90,8 +140,8 @@ export function calculateROI(
     practiceName,
     listSize,
     monthlyScribes,
-    baselineNoteTime: BASELINE_NOTE_TIME_SECONDS,
-    avgEditTime: AVG_EDIT_TIME_SECONDS,
+    baselineNoteTime,
+    avgEditTime,
     timeSavedPerScribe,
     monthlyHoursSaved,
     clinicianHourlyCost,

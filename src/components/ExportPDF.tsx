@@ -1,5 +1,6 @@
 import { useRef } from 'react';
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { ROICalculation, formatCurrency, formatHours, formatTime } from '@/lib/roiCalculations';
@@ -13,23 +14,21 @@ interface ExportPDFProps {
 export function ExportPDF({ calculation, useActualValues = false }: ExportPDFProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!contentRef.current) return;
 
-    const opt = {
-      margin: [8, 8, 8, 8],
-      filename: `${calculation.practiceName.replace(/\s+/g, '_')}_ROI_Report.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true,
-        logging: false,
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: 'avoid-all' }
-    };
 
-    html2pdf().set(opt).from(contentRef.current).save();
+    const canvas = await html2canvas(contentRef.current, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pdfWidth = pdf.internal.pageSize.getWidth() - 16;
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, 'JPEG', 8, 8, pdfWidth, pdfHeight);
+    pdf.save(`${calculation.practiceName.replace(/\s+/g, '_')}_ROI_Report.pdf`);
   };
 
   return (

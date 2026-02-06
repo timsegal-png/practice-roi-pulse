@@ -7,9 +7,10 @@ import accurxLogo from '@/assets/accurx-logo.webp';
 
 interface ExportPDFProps {
   calculation: ROICalculation;
+  useActualValues?: boolean;
 }
 
-export function ExportPDF({ calculation }: ExportPDFProps) {
+export function ExportPDF({ calculation, useActualValues = false }: ExportPDFProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleExport = () => {
@@ -94,7 +95,7 @@ export function ExportPDF({ calculation }: ExportPDFProps) {
               <p style={{ fontSize: '9px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Hours Saved Monthly
               </p>
-              <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#155263', margin: 0 }}>
+              <p style={{ fontSize: '26px', fontWeight: 'bold', color: '#155263', margin: 0 }}>
                 {Math.round(calculation.monthlyHoursSaved)}
               </p>
             </div>
@@ -111,7 +112,7 @@ export function ExportPDF({ calculation }: ExportPDFProps) {
               <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.9)', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Monthly Savings
               </p>
-              <p style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', margin: 0 }}>
+              <p style={{ fontSize: '26px', fontWeight: 'bold', color: 'white', margin: 0 }}>
                 {formatCurrency(calculation.netMonthlySavings)}
               </p>
             </div>
@@ -128,7 +129,7 @@ export function ExportPDF({ calculation }: ExportPDFProps) {
               <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.9)', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Return on Investment
               </p>
-              <p style={{ fontSize: '28px', fontWeight: 'bold', color: 'white', margin: 0 }}>
+              <p style={{ fontSize: '26px', fontWeight: 'bold', color: 'white', margin: 0 }}>
                 {calculation.roi.toFixed(1)}x
               </p>
             </div>
@@ -173,7 +174,7 @@ export function ExportPDF({ calculation }: ExportPDFProps) {
                   </p>
                 </div>
                 <div style={{ marginBottom: '6px' }}>
-                  <p style={{ fontSize: '8px', color: '#888', margin: 0 }}>Est. Monthly Scribes</p>
+                  <p style={{ fontSize: '8px', color: '#888', margin: 0 }}>{useActualValues ? 'Monthly Scribes' : 'Estimated Monthly Scribes'}</p>
                   <p style={{ fontSize: '12px', fontWeight: '600', color: '#333', margin: '2px 0 0 0' }}>
                     {calculation.monthlyScribes.toLocaleString()}
                   </p>

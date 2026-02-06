@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import html2pdf from 'html2pdf.js';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import { ROICalculation, formatCurrency, formatHours, formatTime, formatPercentage } from '@/lib/roiCalculations';
+import { ROICalculation, formatCurrency, formatHours, formatTime } from '@/lib/roiCalculations';
 import accurxLogo from '@/assets/accurx-logo.webp';
 
 interface ExportPDFProps {
@@ -16,11 +16,16 @@ export function ExportPDF({ calculation }: ExportPDFProps) {
     if (!contentRef.current) return;
 
     const opt = {
-      margin: [10, 10, 10, 10],
+      margin: [8, 8, 8, 8],
       filename: `${calculation.practiceName.replace(/\s+/g, '_')}_ROI_Report.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        logging: false,
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: 'avoid-all' }
     };
 
     html2pdf().set(opt).from(contentRef.current).save();
@@ -37,107 +42,206 @@ export function ExportPDF({ calculation }: ExportPDFProps) {
         Export to PDF
       </Button>
 
-      {/* Hidden content for PDF export */}
+      {/* Hidden content for PDF export - optimized for single A4 page */}
       <div className="absolute left-[-9999px]">
         <div 
           ref={contentRef} 
-          className="bg-white p-8 text-black"
-          style={{ width: '210mm', fontFamily: 'Inter, sans-serif' }}
+          className="bg-white text-black"
+          style={{ 
+            width: '190mm', 
+            maxHeight: '277mm',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSize: '10px',
+            lineHeight: '1.3',
+            padding: '6mm',
+          }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8 pb-4 border-b-2 border-gray-200">
-            <img src={accurxLogo} alt="Accurx" className="h-10" />
-            <div className="text-right">
-              <h1 className="text-xl font-bold text-gray-800">Scribe ROI Report</h1>
-              <p className="text-sm text-gray-500">Generated {new Date().toLocaleDateString('en-GB')}</p>
+          {/* Header - Compact */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            borderBottom: '2px solid #155263',
+            paddingBottom: '8px',
+            marginBottom: '12px'
+          }}>
+            <img src={accurxLogo} alt="Accurx" style={{ height: '28px' }} />
+            <div style={{ textAlign: 'right' }}>
+              <h1 style={{ fontSize: '14px', fontWeight: 'bold', color: '#155263', margin: 0 }}>
+                Scribe ROI Report
+              </h1>
+              <p style={{ fontSize: '9px', color: '#666', margin: '2px 0 0 0' }}>
+                {calculation.practiceName} • {new Date().toLocaleDateString('en-GB')}
+              </p>
             </div>
           </div>
 
-          {/* Practice Info */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#155263] mb-2">{calculation.practiceName}</h2>
-            <p className="text-gray-600">Patient list size: {calculation.listSize.toLocaleString()}</p>
-          </div>
+          {/* Hero Metrics - Large & Emphasized */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '10px', 
+            marginBottom: '14px'
+          }}>
+            {/* Hours Saved */}
+            <div style={{ 
+              flex: 1, 
+              background: '#f8f9fa', 
+              borderRadius: '8px', 
+              padding: '12px',
+              textAlign: 'center',
+              border: '1px solid #e0e0e0'
+            }}>
+              <p style={{ fontSize: '9px', color: '#666', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Hours Saved Monthly
+              </p>
+              <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#155263', margin: 0 }}>
+                {Math.round(calculation.monthlyHoursSaved)}
+              </p>
+            </div>
 
-          {/* Key Metrics */}
-          <div className="mb-8 p-6 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Summary</h3>
-            <div className="grid grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-500 mb-1">Hours Saved Monthly</p>
-                <p className="text-3xl font-bold text-[#155263]">{Math.round(calculation.monthlyHoursSaved)}</p>
-              </div>
-              <div className="text-center p-4 bg-white rounded-lg border border-[#5ab9a5]">
-                <p className="text-sm text-gray-500 mb-1">Monthly Savings</p>
-                <p className="text-3xl font-bold text-[#5ab9a5]">{formatCurrency(calculation.netMonthlySavings)}</p>
-              </div>
-              <div className="text-center p-4 bg-white rounded-lg border border-[#5ab9a5]">
-                <p className="text-sm text-gray-500 mb-1">Return on Investment</p>
-                <p className="text-3xl font-bold text-[#5ab9a5]">{calculation.roi.toFixed(1)}x</p>
-              </div>
+            {/* Monthly Savings - Emphasized */}
+            <div style={{ 
+              flex: 1.2, 
+              background: 'linear-gradient(135deg, #5ab9a5 0%, #4aa897 100%)', 
+              borderRadius: '8px', 
+              padding: '12px',
+              textAlign: 'center',
+              boxShadow: '0 2px 8px rgba(90, 185, 165, 0.3)'
+            }}>
+              <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.9)', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Monthly Savings
+              </p>
+              <p style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                {formatCurrency(calculation.netMonthlySavings)}
+              </p>
+            </div>
+
+            {/* ROI - Emphasized */}
+            <div style={{ 
+              flex: 1, 
+              background: 'linear-gradient(135deg, #155263 0%, #1a6678 100%)', 
+              borderRadius: '8px', 
+              padding: '12px',
+              textAlign: 'center',
+              boxShadow: '0 2px 8px rgba(21, 82, 99, 0.3)'
+            }}>
+              <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.9)', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Return on Investment
+              </p>
+              <p style={{ fontSize: '28px', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                {calculation.roi.toFixed(1)}x
+              </p>
             </div>
           </div>
 
-          {/* Annual Projection */}
-          <div className="mb-8 p-6 bg-[#5ab9a5] bg-opacity-10 rounded-lg border border-[#5ab9a5]">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-semibold text-[#155263]">Annual Savings Projection</h3>
-                <p className="text-sm text-gray-600">Total savings over 12 months</p>
-              </div>
-              <p className="text-4xl font-bold text-[#5ab9a5]">{formatCurrency(calculation.annualSavings)}</p>
+          {/* Annual Projection Banner */}
+          <div style={{ 
+            background: '#f0faf8', 
+            border: '1px solid #5ab9a5',
+            borderRadius: '6px', 
+            padding: '10px 14px',
+            marginBottom: '14px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <p style={{ fontSize: '11px', fontWeight: '600', color: '#155263', margin: 0 }}>
+                Annual Savings Projection
+              </p>
+              <p style={{ fontSize: '8px', color: '#666', margin: '2px 0 0 0' }}>
+                Total savings over 12 months
+              </p>
             </div>
+            <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#5ab9a5', margin: 0 }}>
+              {formatCurrency(calculation.annualSavings)}
+            </p>
           </div>
 
-          {/* Detailed Breakdown */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Detailed Breakdown</h3>
-            <table className="w-full text-sm">
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 text-gray-600">Monthly license cost</td>
-                  <td className="py-3 text-right font-medium">{formatCurrency(calculation.monthlyLicenseCost)}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 text-gray-600">Estimated monthly scribes</td>
-                  <td className="py-3 text-right font-medium">{calculation.monthlyScribes.toLocaleString()}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 text-gray-600">Baseline note writing time</td>
-                  <td className="py-3 text-right font-medium">{formatTime(calculation.baselineNoteTime)}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 text-gray-600">Average edit time with Scribe</td>
-                  <td className="py-3 text-right font-medium">{formatTime(calculation.avgEditTime)}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 text-gray-600">Time saved per scribe</td>
-                  <td className="py-3 text-right font-medium">{formatTime(calculation.timeSavedPerScribe)}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 text-gray-600">Monthly hours saved</td>
-                  <td className="py-3 text-right font-medium">{formatHours(calculation.monthlyHoursSaved)}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 text-gray-600">Clinician hourly cost</td>
-                  <td className="py-3 text-right font-medium">{formatCurrency(calculation.clinicianHourlyCost)}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 text-gray-600">Gross monthly savings</td>
-                  <td className="py-3 text-right font-medium">{formatCurrency(calculation.grossMonthlySavings)}</td>
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="py-3 font-semibold text-[#155263]">Net monthly savings</td>
-                  <td className="py-3 text-right font-bold text-[#5ab9a5]">{formatCurrency(calculation.netMonthlySavings)}</td>
-                </tr>
-              </tbody>
-            </table>
+          {/* Two Column Layout */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+            {/* Practice Info */}
+            <div style={{ flex: '0 0 35%' }}>
+              <h3 style={{ fontSize: '10px', fontWeight: '600', color: '#155263', margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Practice Details
+              </h3>
+              <div style={{ background: '#f8f9fa', borderRadius: '4px', padding: '8px' }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <p style={{ fontSize: '8px', color: '#888', margin: 0 }}>Patient List Size</p>
+                  <p style={{ fontSize: '12px', fontWeight: '600', color: '#333', margin: '2px 0 0 0' }}>
+                    {calculation.listSize.toLocaleString()}
+                  </p>
+                </div>
+                <div style={{ marginBottom: '6px' }}>
+                  <p style={{ fontSize: '8px', color: '#888', margin: 0 }}>Est. Monthly Scribes</p>
+                  <p style={{ fontSize: '12px', fontWeight: '600', color: '#333', margin: '2px 0 0 0' }}>
+                    {calculation.monthlyScribes.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p style={{ fontSize: '8px', color: '#888', margin: 0 }}>Monthly Licence</p>
+                  <p style={{ fontSize: '12px', fontWeight: '600', color: '#333', margin: '2px 0 0 0' }}>
+                    {formatCurrency(calculation.monthlyLicenseCost)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Calculation Breakdown */}
+            <div style={{ flex: 1 }}>
+              <h3 style={{ fontSize: '10px', fontWeight: '600', color: '#155263', margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Calculation Breakdown
+              </h3>
+              <table style={{ width: '100%', fontSize: '9px', borderCollapse: 'collapse' }}>
+                <tbody>
+                  <tr style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '4px 0', color: '#555' }}>Baseline note writing time</td>
+                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '500' }}>{formatTime(calculation.baselineNoteTime)}</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '4px 0', color: '#555' }}>Avg edit time with Scribe</td>
+                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '500' }}>{formatTime(calculation.avgEditTime)}</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '4px 0', color: '#555' }}>Time saved per scribe</td>
+                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '500' }}>{formatTime(calculation.timeSavedPerScribe)}</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '4px 0', color: '#555' }}>Monthly hours saved</td>
+                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '500' }}>{formatHours(calculation.monthlyHoursSaved)}</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '4px 0', color: '#555' }}>Clinician hourly cost</td>
+                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '500' }}>{formatCurrency(calculation.clinicianHourlyCost)}</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '4px 0', color: '#555' }}>Gross monthly savings</td>
+                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '500' }}>{formatCurrency(calculation.grossMonthlySavings)}</td>
+                  </tr>
+                  <tr style={{ background: '#f0faf8' }}>
+                    <td style={{ padding: '5px 4px', fontWeight: '600', color: '#155263' }}>Net monthly savings</td>
+                    <td style={{ padding: '5px 4px', textAlign: 'right', fontWeight: 'bold', color: '#5ab9a5' }}>{formatCurrency(calculation.netMonthlySavings)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="pt-4 border-t border-gray-200 text-center text-xs text-gray-500">
-            <p>Estimates based on average consultation times and clinician costs. Actual savings may vary.</p>
-            <p className="mt-1">© {new Date().getFullYear()} Accurx • www.accurx.com</p>
+          <div style={{ 
+            borderTop: '1px solid #ddd', 
+            paddingTop: '8px',
+            marginTop: 'auto'
+          }}>
+            <p style={{ fontSize: '7px', color: '#888', margin: '0 0 3px 0', lineHeight: '1.4' }}>
+              <strong>Assumptions:</strong> Baseline note time {formatTime(calculation.baselineNoteTime)}, 
+              edit time {formatTime(calculation.avgEditTime)}, 
+              clinician cost {formatCurrency(calculation.clinicianHourlyCost)}/hr. 
+              Estimates based on average consultation times. Actual savings may vary.
+            </p>
+            <p style={{ fontSize: '7px', color: '#aaa', margin: 0, textAlign: 'center' }}>
+              © {new Date().getFullYear()} Accurx • www.accurx.com
+            </p>
           </div>
         </div>
       </div>

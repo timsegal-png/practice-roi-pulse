@@ -125,7 +125,7 @@ export function Calculator() {
       {practice && calculation && (
         <div className="space-y-8 animate-fade-in">
           {/* ROI Output - Main summary */}
-          <ROIOutput calculation={calculation} />
+          <ROIOutput calculation={calculation} useActualValues={useActualValues} />
 
           {/* Detailed Breakdown Table */}
           <ROITable 

@@ -4,9 +4,10 @@ import { ExportPDF } from './ExportPDF';
 
 interface ROIOutputProps {
   calculation: ROICalculation;
+  useActualValues?: boolean;
 }
 
-export function ROIOutput({ calculation }: ROIOutputProps) {
+export function ROIOutput({ calculation, useActualValues = false }: ROIOutputProps) {
   return (
     <div className="bg-card rounded-xl border border-border p-8 shadow-sm animate-fade-in">
       {/* Practice Name Header */}
@@ -14,7 +15,7 @@ export function ROIOutput({ calculation }: ROIOutputProps) {
         <h2 className="text-2xl font-bold text-primary">
           {calculation.practiceName}
         </h2>
-        <ExportPDF calculation={calculation} />
+        <ExportPDF calculation={calculation} useActualValues={useActualValues} />
       </div>
 
       {/* Practice Info Cards */}

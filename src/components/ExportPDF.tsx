@@ -2,7 +2,8 @@ import { useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { ROICalculation, formatCurrency, formatHours, formatTime } from '@/lib/roiCalculations';
 import accurxLogo from '@/assets/accurx-logo.webp';
 
@@ -29,18 +30,43 @@ export function ExportPDF({ calculation, useActualValues = false }: ExportPDFPro
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
     pdf.addImage(imgData, 'JPEG', 8, 8, pdfWidth, pdfHeight);
     pdf.save(`${calculation.practiceName.replace(/\s+/g, '_')}_ROI_Report.pdf`);
+    return true;
+  };
+
+  const handleShare = async () => {
+    const exported = await handleExport();
+    if (!exported) return;
+
+    const subject = encodeURIComponent('Scribe ROI for our practice');
+    const body = encodeURIComponent(
+      `Hey team,\n\nI was reviewing the Scribe ROI for our practice and wanted to share this with you.\n\nKeen to discuss a premium Scribe contract and have cc'd in the Accurx team to go into more detail.`
+    );
+    const cc = encodeURIComponent('partnerships@accurx.com');
+    window.location.href = `mailto:?cc=${cc}&subject=${subject}&body=${body}`;
+
+    toast.info('Your ROI PDF has been downloaded — please attach it to the email before sending.');
   };
 
   return (
     <>
-      <Button 
-        onClick={handleExport} 
-        variant="outline" 
-        className="gap-2"
-      >
-        <Download className="w-4 h-4" />
-        Export to PDF
-      </Button>
+      <div className="flex gap-2">
+        <Button 
+          onClick={handleExport} 
+          variant="outline" 
+          className="gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Export to PDF
+        </Button>
+        <Button 
+          onClick={handleShare} 
+          variant="outline" 
+          className="gap-2"
+        >
+          <Share2 className="w-4 h-4" />
+          Share with Partners
+        </Button>
+      </div>
 
       {/* Hidden content for PDF export - optimized for single A4 page */}
       <div className="absolute left-[-9999px]">

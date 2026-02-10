@@ -2,98 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
     /* Accurx Brand Colors */
     --background: 0 0% 100%;
-    --foreground: 210 29% 20%;
+    --foreground: 240 18% 27%; /* #393956 */
 
     --card: 0 0% 100%;
-    --card-foreground: 210 29% 20%;
+    --card-foreground: 240 18% 27%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 29% 20%;
+    --popover-foreground: 240 18% 27%;
 
-    /* Accurx Primary Blue */
-    --primary: 190 76% 26%;
+    /* Accurx Primary Accent #0B7373 */
+    --primary: 180 82% 25%;
     --primary-foreground: 0 0% 100%;
 
-    /* Accurx Mint/Teal accent */
-    --secondary: 169 53% 55%;
-    --secondary-foreground: 210 29% 20%;
+    --secondary: 180 82% 25%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 20% 96%;
-    --muted-foreground: 210 15% 45%;
+    --muted: 240 10% 96%;
+    --muted-foreground: 240 10% 45%;
 
-    /* Accurx Mint for highlights */
-    --accent: 169 53% 55%;
-    --accent-foreground: 210 29% 20%;
+    --accent: 180 82% 25%;
+    --accent-foreground: 0 0% 100%;
 
     /* Success green */
-    --success: 152 60% 40%;
+    --success: 180 82% 25%;
     --success-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
-    --ring: 190 76% 26%;
+    --border: 240 10% 90%;
+    --input: 240 10% 90%;
+    --ring: 180 82% 25%;
 
     --radius: 0.625rem;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-foreground: 240 18% 27%;
+    --sidebar-primary: 180 82% 25%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent-foreground: 240 18% 27%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 180 82% 25%;
   }
 
   .dark {
-    --background: 210 25% 8%;
+    --background: 240 15% 8%;
     --foreground: 0 0% 98%;
 
-    --card: 210 25% 10%;
+    --card: 240 15% 10%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 210 25% 10%;
+    --popover: 240 15% 10%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 190 70% 45%;
+    --primary: 180 75% 35%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 169 50% 50%;
+    --secondary: 180 75% 35%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 20% 15%;
-    --muted-foreground: 210 15% 65%;
+    --muted: 240 15% 15%;
+    --muted-foreground: 240 10% 65%;
 
-    --accent: 169 50% 50%;
+    --accent: 180 75% 35%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 152 55% 45%;
+    --success: 180 75% 35%;
     --success-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 240 40% 98%;
 
-    --border: 210 20% 18%;
-    --input: 210 20% 18%;
-    --ring: 190 70% 45%;
+    --border: 240 15% 18%;
+    --input: 240 15% 18%;
+    --ring: 180 75% 35%;
 
-    --sidebar-background: 240 5.9% 10%;
+    --sidebar-background: 240 15% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 180 75% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 180 75% 35%;
   }
 }
 
@@ -104,7 +102,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Outfit', system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {

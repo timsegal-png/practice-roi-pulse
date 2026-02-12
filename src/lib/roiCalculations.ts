@@ -16,9 +16,9 @@ export interface ROICalculation {
 }
 
 // Constants
-const BASELINE_NOTE_TIME_SECONDS = 420; // 7 minutes
-const AVG_EDIT_TIME_SECONDS = 68;
-const DEFAULT_CLINICIAN_HOURLY_COST = 80; // £80/hour
+const BASELINE_NOTE_TIME_SECONDS = 210; // 3 minutes 30 seconds
+const AVG_EDIT_TIME_SECONDS = 63; // 1 minute 3 seconds
+const DEFAULT_CLINICIAN_HOURLY_COST = 185; // £185/hour
 
 // Scribe estimation dataset based on list size ranges
 const SCRIBE_ESTIMATES: { min: number; max: number; avg: number }[] = [

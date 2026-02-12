@@ -8,13 +8,9 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 interface ROITableProps {
   calculation: ROICalculation;
   useActualValues: boolean;
-  baselineNoteTime: number;
-  timeSavedPerScribe: number;
   monthlyScribes: number;
   clinicianHourlyCost: number;
   onToggleActual: (isActual: boolean) => void;
-  onBaselineChange: (value: number) => void;
-  onTimeSavedChange: (value: number) => void;
   onScribesChange: (value: number) => void;
   onClinicianCostChange: (value: number) => void;
 }
@@ -22,39 +18,46 @@ interface ROITableProps {
 export function ROITable({ 
   calculation, 
   useActualValues,
-  baselineNoteTime,
-  timeSavedPerScribe,
   monthlyScribes,
   clinicianHourlyCost,
   onToggleActual,
-  onBaselineChange,
-  onTimeSavedChange,
   onScribesChange,
   onClinicianCostChange,
 }: ROITableProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const editableRows = [
+  const assumptionRows = [
     { 
       key: 'baseline',
       label: 'Baseline note writing time', 
       value: formatTime(calculation.baselineNoteTime), 
-      description: 'Time to write notes without Scribe',
-      editable: true,
-      editValue: baselineNoteTime,
-      onChange: onBaselineChange,
-      suffix: 'seconds',
+      description: (
+        <span>
+          Source:{' '}
+          <a href="https://cdn.prod.website-files.com/67ef895ebcae5ebab6aa5d30/687eae08d924decb3fb93925_Tandem%20_%20St.%20Wulfstan%20Surgery%20%E2%80%94%20Case%20study.pdf" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+            Case study of St Wulfstan Surgery.
+          </a>
+        </span>
+      ),
+      editable: false,
+    },
+    { 
+      key: 'avgEdit',
+      label: 'Average edit time with Scribe', 
+      value: formatTime(calculation.avgEditTime), 
+      description: 'Based on the national average across all Tandem consultations.',
+      editable: false,
     },
     { 
       key: 'timeSaved',
       label: 'Time saved per scribe', 
       value: formatTime(calculation.timeSavedPerScribe), 
-      description: 'Net time savings per appointment',
-      editable: true,
-      editValue: timeSavedPerScribe,
-      onChange: onTimeSavedChange,
-      suffix: 'seconds',
+      description: 'Auto-calculated: baseline time – average edit time.',
+      editable: false,
     },
+  ];
+
+  const editableRows = [
     { 
       key: 'scribes',
       label: useActualValues ? 'Actual monthly scribes' : 'Estimated monthly scribes', 
@@ -69,7 +72,14 @@ export function ROITable({
       key: 'hourlyCost',
       label: 'Clinician hourly cost', 
       value: formatCurrency(calculation.clinicianHourlyCost), 
-      description: 'Average cost per hour',
+      description: (
+        <span>
+          Based on the assumption a clinician can complete 5 sessions per hour, using the price per session from the{' '}
+          <a href="https://www.kingsfund.org.uk/insight-and-analysis/data-and-charts/key-facts-figures-nhs" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+            King's Fund
+          </a>.
+        </span>
+      ),
       editable: true,
       editValue: clinicianHourlyCost,
       onChange: onClinicianCostChange,
@@ -79,7 +89,6 @@ export function ROITable({
   ];
 
   const readOnlyRows = [
-    { label: 'Average edit time with Scribe', value: formatTime(calculation.avgEditTime), description: 'Time to review & edit AI-generated notes' },
     { label: 'Monthly hours saved', value: formatHours(calculation.monthlyHoursSaved), description: 'Total clinician time recovered' },
     { label: 'Gross monthly savings', value: formatCurrency(calculation.grossMonthlySavings), description: 'Value of time saved' },
     { label: 'License cost per patient', value: formatCurrency(calculation.licenseCostPerScribe, 2), description: 'Based on practice size band' },
@@ -124,8 +133,8 @@ export function ROITable({
             </div>
           </div>
 
-          {/* Editable rows */}
-          {editableRows.map((row) => (
+          {/* Assumption rows (locked) */}
+          {assumptionRows.map((row) => (
             <div 
               key={row.key} 
               className="px-6 py-4 flex items-center justify-between transition-colors hover:bg-muted/20"
@@ -136,8 +145,26 @@ export function ROITable({
                 </span>
                 <p className="text-xs text-muted-foreground mt-0.5">{row.description}</p>
               </div>
+              <span className="font-semibold text-lg text-foreground">
+                {row.value}
+              </span>
+            </div>
+          ))}
+
+          {/* Editable rows */}
+          {editableRows.map((row) => (
+            <div 
+              key={row.key} 
+              className="px-6 py-4 flex items-center justify-between transition-colors hover:bg-muted/20"
+            >
+              <div className="flex-1 min-w-0 mr-4">
+                <span className="font-medium text-foreground">
+                  {row.label}
+                </span>
+                <p className="text-xs text-muted-foreground mt-0.5">{row.description}</p>
+              </div>
               {useActualValues && row.editable ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {row.prefix && <span className="text-muted-foreground">{row.prefix}</span>}
                   <Input
                     type="number"
